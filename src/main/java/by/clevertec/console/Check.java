@@ -1,4 +1,4 @@
-package by.clevertec;
+package by.clevertec.console;
 
 import by.clevertec.exception.WrongIdException;
 
