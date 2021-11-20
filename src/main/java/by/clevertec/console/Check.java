@@ -50,7 +50,7 @@ public class Check {
 
     @SneakyThrows
     public void printToFile() {
-        File file = Path.of("src","main", "resources", "checkToFile.txt").toFile();
+        File file = Path.of("src","main", "resources", "checkIntoFile.txt").toFile();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) {
             List<String> stringList = createList();
             for (String s : stringList) {
