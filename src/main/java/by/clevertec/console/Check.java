@@ -1,26 +1,63 @@
 package by.clevertec.console;
 
 import by.clevertec.exception.WrongIdException;
+import lombok.SneakyThrows;
 
+import java.io.*;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Check {
 
     private String discountCard;
     private List<ParamMapper> paramMappersList = new ArrayList<>();
 
-    public void setParamMappersList(List<ParamMapper> paramMappersList) {
-    this.paramMappersList = paramMappersList;
-}
-    public void setDiscountCard(String discountCard) {
+    public Check(String[] args) {
+        parseParams(args);
+    }
+
+    public Check(String path) {
+        String fileContent = convertPathStringToTextString(path);
+        String[] args = convertStringToArray(fileContent);
+        parseParams(args);
+    }
+
+    private void setParamMappersList(List<ParamMapper> paramMappersList) {
+        this.paramMappersList = paramMappersList;
+    }
+    private void setDiscountCard(String discountCard) {
         this.discountCard = discountCard;
     }
 
-    public Check(String[] args) {
-        parseParams(args);
+    private String[] convertStringToArray(String text) {
+        return text.split(", ");
+    }
+
+    @SneakyThrows
+    private String convertPathStringToTextString(String path) {
+        File file = Path.of("src", "main", "resources", path+".txt").toFile();
+        StringBuilder collect = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            collect.append(reader.lines()
+                    .collect(Collectors.joining("")));
+        }
+        return collect.toString();
+    }
+
+    @SneakyThrows
+    public void printToFile() {
+        File file = Path.of("src","main", "resources", "checkToFile.txt").toFile();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) {
+            List<String> stringList = createList();
+            for (String s : stringList) {
+                writer.write(s);
+                writer.newLine();
+            }
+        }
     }
 
     private void parseParams(String[] appArgs) {
@@ -39,7 +76,6 @@ public class Check {
         }
         this.setDiscountCard(tempCard);
         this.setParamMappersList(this.setParamMapper(tempList));
-
     }
 
     private List<ParamMapper> setParamMapper(List<String> params) {
@@ -59,7 +95,14 @@ public class Check {
         return paramMappers;
     }
 
-    public void print() {
+    public void printToConsole() {
+        List<String> stringList = createList();
+        for (String s : stringList) {
+            System.out.println(s);
+        }
+    }
+
+    public List<String> createList() {
         int id;
         double price;
         int quantity;
@@ -67,11 +110,12 @@ public class Check {
         int discountProductsCounter = 0;
         double fiveProductDiscount;
         double fiveProductsTotalDiscount=0;
-        double discountCardDiscount = discountCard.equals("")? 0 : 0.15;
+        double discountCardDiscount = discountCard==null? 0 : 0.15;
         double total;
         double totalDiscount;
         double totalPrice = 0;
         double finalPrice;
+        List <String> stringsToPrint = new ArrayList<>();
 
         for (ParamMapper pM : paramMappersList) {
             id = pM.getId();
@@ -86,13 +130,13 @@ public class Check {
             }
         }
 
-        System.out.println("-----------------------------------");
-        System.out.println("         CASH RECEIPT");
-        System.out.println("          Supermarket\n");
+        stringsToPrint.add("--------------------------------------");
+        stringsToPrint.add("            CASH RECEIPT");
+        stringsToPrint.add("            Supermarket\n");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println("              " + formatter.format(new Date()));
-        System.out.println("-----------------------------------");
-        System.out.println("QTY   DESCRIPTION    PRICE   TOTAL");
+        stringsToPrint.add("                  " + formatter.format(new Date()));
+        stringsToPrint.add("--------------------------------------");
+        stringsToPrint.add("QTY\tDESCRIPTION\t       \tPRICE   TOTAL");
 
         for (ParamMapper pM : paramMappersList) {
             fiveProductDiscount = 0;
@@ -114,19 +158,19 @@ public class Check {
                 }
                 totalPrice+=total;
 
-                String format = String.format("%2d     %-12s %6.2f %7.2f", quantity, description, price, total);
-                System.out.println(format);
+                stringsToPrint.add(String.format("%2d  %-17s %7.2f  %6.2f", quantity, description, price, total));
             } catch (WrongIdException ignored) {}
         }
         totalDiscount=totalPrice*discountCardDiscount;
         finalPrice = totalPrice - totalDiscount;
 
-        System.out.println("-----------------------------------");
-        System.out.println("Discount card No:" + discountCard);
-        System.out.printf("Discount card discount%12.2f\n", totalDiscount);
-        System.out.printf("SALE discount%21.2f\n", fiveProductsTotalDiscount);
-        System.out.printf("Total discount%20.2f\n", fiveProductsTotalDiscount+totalDiscount);
-        System.out.printf("TOTAL %28.2f\n", finalPrice);
-        System.out.println("-----------------------------------");
+        stringsToPrint.add("--------------------------------------");
+        stringsToPrint.add("Discount card No:" + discountCard);
+        stringsToPrint.add(String.format("Discount card discount %14.2f", totalDiscount));
+        stringsToPrint.add(String.format("SALE discount %23.2f", fiveProductsTotalDiscount));
+        stringsToPrint.add(String.format("Total discount %22.2f", fiveProductsTotalDiscount+totalDiscount));
+        stringsToPrint.add(String.format("TOTAL %31.2f", finalPrice));
+        stringsToPrint.add("--------------------------------------");
+        return stringsToPrint;
     }
 }

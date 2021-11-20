@@ -9,7 +9,7 @@ public enum Products {
     BOOTS1(3, "Boots1", 25, 1),
     SHOES1(4, "Shoes1", 30, 1),
     JACKET1(5, "Jacket1", 35, 1),
-    HAT1(6, "Hat1", 40, 1),
+    HAT1(6, "Hat1", 140, 1),
     HAT2(7, "Hat2", 40, 1),
     WEST2(8, "West2", 45, 1),
     WEST1(9, "West1", 45, 0),
